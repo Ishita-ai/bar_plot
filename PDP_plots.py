@@ -1,7 +1,3 @@
-import os
-import sys
-import scipy
-import lightgbm
 import numpy as np
 import pandas as pd
 import pickle
@@ -9,19 +5,11 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.inspection import plot_partial_dependence
+from sklearn.inspection import PartialDependenceDisplay
+from sklearn.inspection import partial_dependence
 from sklearn.ensemble import GradientBoostingRegressor  # You can use your specific model
 
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_squared_error
-
-from pyspark.sql import functions as F
-from pyspark.sql.window import Window
-from pyspark.sql.types import IntegerType
 import streamlit as st
-
-pd.set_option('display.float.format', lambda x: '%.3f' % x)
 
 def main():
     col1, col2 = st.columns(2)
@@ -31,7 +19,9 @@ def main():
 
     # Load your dataset (replace 'data_pdp_plot.csv' with the actual file path)
     df = pd.read_csv("data_pdp_plot2.csv")
-
+#     df=df.dropna(axis=0)
+#     df = df.mask(df.eq('None')).dropna()
+#     st.write(df.shape)
     # Set the title for your Streamlit app
 
     # Specify the feature(s) for which you want to create PDPs
@@ -40,7 +30,7 @@ def main():
  'COMP_DESCRIPTION_LENGTH',
  'COMP_IMG_COUNT',
  'RETAIL_SALES_VALUE',
- 'RETAIL_SALES_UNIT',
+#  'RETAIL_SALES_UNIT',
  'SEARCH_TERM_IN_NAME',
  'SEARCH_TERM_IN_DESC',
  'SEARCH_TERM_COUNT_IN_NAME',
@@ -60,22 +50,22 @@ def main():
         
         st.subheader("Partial Dependence Plots")
 
-
         feature = st.sidebar.selectbox("Select a Feature", features,key=None)
         if st.sidebar.button("Show PDP Plot"):
+            
             if feature=='None':
-                fig, ax = plt.subplots(figsize=(10, 6))
+                fig, ax = plt.subplots()
                 st.pyplot(fig)
             else:
-                
-                # Create a PDP plot
-                fig, ax = plt.subplots(figsize=(6, 5))
-        #         fig, ax = plt.subplots()
-                
-                plot_partial_dependence(model, X=df, features=[feature], grid_resolution=100, ax=ax)
-                ax.set_ylabel("RANK")
-                ax.grid(True)
-                st.pyplot(fig)
+#                 fig, ax = plt.subplots()  ## figsize=(10, 6)
+                st.bar_chart(data=df,x=feature,y='RETAIL_SALES_UNIT')
+#                 plot_partial_dependence(model, X=df, features=[feature], grid_resolution=100,ax=ax)
+#                 pd_results = partial_dependence(model, X=df, features=[feature], grid_resolution=100)
+#                 PartialDependenceDisplay([pd_results], features=[feature])
+#                 ax.set_ylabel("RANK")
+#                 ax.grid(True)
+#                 st.pyplot(fig)
+
 
     # Custom CSS for styling
     custom_css = """
@@ -112,8 +102,6 @@ def main():
         f'<div class="custom-box">{text}</div>',
         unsafe_allow_html=True
     )
-
-
 
 if __name__ == "__main__":
     main()
